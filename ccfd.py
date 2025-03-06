@@ -1,37 +1,27 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from sklearn.metrics import accuracy_score
 
-st.title("🔍 Credit Card Fraud Detection")
+# 🎨 Streamlit Page Config
+st.set_page_config(page_title="Credit Card Fraud Detection", page_icon="💳")
 
-dataset_path = "dataset.csv" 
+# 🏠 Title
+st.title("🔍 Credit Card Fraud Detection ")
+
+# 📂 Load dataset
+dataset_path = "dataset.csv"
 df = pd.read_csv(dataset_path)
+df.columns = df.columns.str.lower()
 
-df.columns = df.columns.str.lower()  # Ensure all columns are lowercase
-
-st.subheader("📊 Dataset Preview")
-st.write(df.head())
-
-# Check if 'isfraud' exists
 if "isfraud" not in df.columns:
-    st.error("⚠️ The dataset must contain an 'isfraud' column.")
+    st.error("⚠️ Dataset must contain an 'isfraud' column!")
     st.stop()
 
-# Class Distribution
-st.subheader("🧐 Class Distribution")
-fig, ax = plt.subplots()
-sns.countplot(x=df["isfraud"], palette="coolwarm", ax=ax)
-ax.set_title("Legit vs Fraud Transactions")
-st.pyplot(fig)
-plt.close(fig)  # Close figure to prevent Streamlit caching issues
-
-# Preprocessing
+# 🔄 Preprocessing
 X = df.drop(columns=["isfraud"])
 Y = df["isfraud"]
 
@@ -41,69 +31,56 @@ if not categorical_cols.empty:
     X[categorical_cols] = encoder.fit_transform(X[categorical_cols])
 
 scaler = StandardScaler()
-X = scaler.fit_transform(X)
+X_scaled = scaler.fit_transform(X)
 
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, stratify=Y, random_state=2)
-
-# Model Training
+# 🔥 Train Model
+X_train, X_test, Y_train, Y_test = train_test_split(X_scaled, Y, test_size=0.2, stratify=Y, random_state=2)
 model = LogisticRegression(max_iter=500)
 model.fit(X_train, Y_train)
 
-# Model Accuracy
-Y_pred = model.predict(X_test)
-accuracy = accuracy_score(Y_test, Y_pred)
+# 📝 User Input Form
+st.subheader("📝 Enter Transaction Details")
 
-st.subheader("🎯 Model Accuracy")
-st.success(f"✅ Accuracy: {accuracy:.2%}")
-
-if accuracy >= 0.9:
-    st.balloons()
-
-# Fraud Trend Over Time (Fixed Column Names)
-if "transactiondate" in df.columns:
-    st.subheader("⏳ Fraud Trend Over Time")
-    
-    # Convert to datetime properly
-    df["transactiondate"] = pd.to_datetime(df["transactiondate"], errors="coerce")
-
-    # Ensure conversion worked
-    if df["transactiondate"].isna().all():
-        st.error("⚠️ All transaction dates are invalid. Check dataset format.")
+input_data = {}
+for col in df.drop(columns=["isfraud"]).columns:
+    if df[col].dtype == "object":
+        unique_vals = df[col].dropna().unique()
+        input_data[col] = st.selectbox(f"📌 {col}", unique_vals)
     else:
-        df.dropna(subset=["transactiondate"], inplace=True)  # Remove invalid dates
+        min_val, max_val = float(df[col].min()), float(df[col].max())
+        default = float(df[col].median())
+        input_data[col] = st.number_input(f"📊 {col}", min_value=min_val, max_value=max_val, value=default)
 
-        # Group by date for fraud cases
-        fraud_trend = df[df["isfraud"] == 1].groupby(df["transactiondate"].dt.date).size()
+# 🔄 Process the input data
+input_df = pd.DataFrame([input_data])
+if not categorical_cols.empty:
+    input_df[categorical_cols] = encoder.transform(input_df[categorical_cols])
+input_scaled = scaler.transform(input_df)
 
-        fig, ax = plt.subplots()
-        fraud_trend.plot(ax=ax, marker="o", linestyle="-", color="red")
-        ax.set_title("Fraudulent Transactions Over Time")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Fraud Cases")
-        st.pyplot(fig)
-        plt.close(fig)
-
-# Feature Importance (Fix)
-try:
-    feature_names = df.drop(columns=["isfraud"]).columns
-    feature_importance = pd.Series(np.abs(model.coef_[0]), index=feature_names).sort_values(ascending=False)
-
-    st.subheader("🔍 Feature Importance")
+# 🔍 Fraud Detection on Button Click
+if st.button("🚀 Detect Fraud"):
+    pred = model.predict(input_scaled)[0]
     
-    if feature_importance.empty:
-        st.error("⚠️ Feature importance calculation failed. Check model training.")
+    # 🎯 Model Accuracy Calculation (Only when detecting fraud)
+    accuracy = accuracy_score(Y_test, model.predict(X_test))
+
+    if pred == 1:
+        st.markdown(
+            '<h2 style="text-align:center; color:red;">⚠️ Fraudulent Transaction Detected! ❌</h2>',
+            unsafe_allow_html=True
+        )
+        st.error("🔴 Warning! This transaction is likely fraudulent.")
     else:
-        st.write("Feature Importance Values:", feature_importance.head(10))  # Debugging print
-        fig, ax = plt.subplots(figsize=(8, 5))
-        sns.barplot(x=feature_importance.values, y=feature_importance.index, palette="viridis", ax=ax)
-        ax.set_title("Feature Importance in Fraud Detection")
-        st.pyplot(fig)
-        plt.close(fig)
-
-except Exception as e:
-    st.error(f"⚠️ Error in Feature Importance: {e}")
-
-st.write("---")  # Force layout break
-
-
-
+        st.markdown(
+            '<h2 style="text-align:center; color:green;">✅ Legitimate Transaction ✔️</h2>',
+            unsafe_allow_html=True
+        )
+        st.success("🟢 This transaction appears to be safe.")
+    
+    # 📊 Show Model Accuracy after detecting fraud
+    st.subheader("📊 Model Performance")
+    st.progress(accuracy)
+    st.markdown(
+        f'<h3 style="text-align:center; color:blue;">📈 Model Accuracy: {accuracy:.2%}</h3>',
+        unsafe_allow_html=True
+    )
