@@ -1,5 +1,5 @@
 # 🔍 Credit Card Fraud Detection System  
-**Live Demo:** [Credit Card Fraud Detection App](https://creditcardfrauddetectionprediction.streamlit.app/)  
+**Live Demo:** [Credit Card Fraud Detection App](https://creditcardfrauddetecting.streamlit.app/)  
 
 ---
 
