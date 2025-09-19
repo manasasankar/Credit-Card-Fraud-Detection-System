@@ -17,7 +17,7 @@ from sklearn.metrics import (
 import xgboost as xgb
 
 # ---------------------- Config ----------------------
-st.set_page_config(page_title="Credit Card Fraud Detection (Resume-ready)", layout="wide")
+st.set_page_config(page_title="Credit Card Fraud Detection", layout="wide")
 DATA_PATH = "dataset.csv"
 RF_FILE = "rf_model.joblib"
 XGB_FILE = "xgb_model.joblib"
@@ -25,7 +25,7 @@ SCALER_FILE = "scaler.joblib"
 ENC_FILE = "encoder.joblib"
 # ----------------------------------------------------
 
-st.title("💳 Fraud Detection — Interactive Dashboard (Resume-ready)")
+st.title("💳 Fraud Detection — Interactive Dashboard")
 
 @st.cache_data
 def load_data(path=DATA_PATH):
