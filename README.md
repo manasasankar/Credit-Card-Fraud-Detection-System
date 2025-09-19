@@ -26,6 +26,21 @@ A Streamlit web app that detects fraudulent credit card transactions using Machi
 
 ---
 
+**ML algorithms Algorithms**:
+
+* **Random Forest Classifier**
+
+  * Ensemble of many decision trees
+  * Votes from all trees decide the final class (fraud / not fraud)
+
+* **XGBoost Classifier**
+
+  * Gradient boosting algorithm
+  * Builds trees sequentially, each correcting errors of the previous
+
+It compares both and selects the one with **higher ROC-AUC score** as the best model.
+
+
 ## 📂 Project Structure
 
 ```
@@ -42,7 +57,7 @@ Credit-Card-Fraud-Detection-System/
 ## 🖥️ Run Locally
 
 ```bash
-git clone <your-repo-url>
+git clone <repo-url>
 cd Credit-Card-Fraud-Detection-System
 pip install -r requirements.txt
 streamlit run app.py
@@ -65,7 +80,4 @@ streamlit run app.py
 * Use relative paths to avoid file-not-found issues
 
 ---
-
-If you want, I can also **add badges (like Python version, Streamlit, License)** to make it look more polished.
-Want me to do that?
 
