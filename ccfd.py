@@ -259,4 +259,4 @@ with st.expander("Batch predict via CSV"):
         st.warning("Models not available to predict. Train or load models first.")
 
 st.markdown("---")
-st.write("Made for portfolio: Model comparison, SHAP explainability, CSV upload, and pre-trained fast loading.")
+st.write("Model comparison, SHAP explainability, CSV upload, and pre-trained fast loading.")
